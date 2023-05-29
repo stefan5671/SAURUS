@@ -1,9 +1,7 @@
 %Spatial Audio Rendering of Underwater Audio Signals
+% Implementation of Encoding/Decoding Processing by Stefan Schucker, 2023
 % uses function and code from the following libraries:
-% Acoustical Spherical Array Processing by Archontis Politis
-% Array-Response-Simulator by Archontis Politis
-% COMPASS by Archontis Politis
-% Stefan Schucker, 2023
+% Acoustical Spherical Array Processing, Array-Response-Simulator, COMPASS  by Archontis Politis
 clear all; close all;
 
 %Simulation settings for the tetrahedron hydrophone array
@@ -37,13 +35,17 @@ sht_order = floor(sqrt(nHydrophone-1));
 arrayType = 'open'; %Open sphere Array
 
 %%
+%Create A folder for the HDF5 source files which can be downloaded on
+%zenodo under this link: https://zenodo.org/record/7657352#.ZHS2a3ZBxlU
+
 %Read in the HDF5 input files that can be downloaded from zenodo
 data = h5read('Source_Files/Raw_HDF5_Zenodo/6th January/2023-01-06--09-16-18--00-27-41.hdf5','/Signals')';
 data = double(data);
-% Resample to 
+% Resample to suitable frequency range (recomended is 48kHz)
 A_Format = resample(data,48000,192000);
+
 %check for recording length in minutes
-t_length_min = length(A_Format)/fs/60;
+t_length_min = length(A_Format)/fs/60
 
 %%
 % If you wish to use the raw input from zenodo as wave files in A-Format
@@ -58,11 +60,10 @@ audiowrite(out_file_name, A_Format, fs, 'BitsPerSample', 32,'Title', 'Recording 
 % Before you process the whole recording you should be aware that this
 % implementation is not optimized for run time. So it is highly recomended
 % to limit the A-Format to about 5min length otherwise the parametric
-% decoding will take very long time since it's run speed is growing not linear
+% decoding will take very long time since its run speed is growing not linear
 % with the input size but exponentially
 
 %set up a time window you want to render:
-
 t_start_min = fs*60*5
 t_end_min = fs*60*6
 A_Format = A_Format(t_start_min:t_end_min,:);
@@ -116,7 +117,6 @@ switch pars.STFTmode
         end
 end
 
-%  linear processing doing nothing
 nCH_in = size(A_Format,2);
 nBands = length(pars.centerfreq);
 M_dec = M_hydro2sh_diffeq;
